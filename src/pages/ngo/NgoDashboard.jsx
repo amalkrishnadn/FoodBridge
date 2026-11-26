@@ -1,31 +1,49 @@
-import React from "react";
+import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import DashboardCard from "../../components/DashboardCard";
 import StatusBadge from "../../components/StatusBadge";
+import GenericProgressTracker from "../../components/GenericProgressTracker";
+import Toast from "../../components/Toast";
+import { useApp } from "../../context/AppContext";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faUtensils,
   faClock,
   faCheckCircle,
   faClipboardList,
+  faArrowRight,
 } from "@fortawesome/free-solid-svg-icons";
 
 const NgoDashboard = () => {
-  const requests = [
-    { id: 1, food: "Vegetable Rice", source: "Rahul Sharma",  qty: "25 meals",  date: "24 Nov 2026", status: "Pending"   },
-    { id: 2, food: "Fresh Bread",    source: "City Bakery",   qty: "40 pieces", date: "23 Nov 2026", status: "Approved"  },
-    { id: 3, food: "Fruit Packs",    source: "Fresh Mart",    qty: "15 packs",  date: "22 Nov 2026", status: "Completed" },
-  ];
+  const { ngoRequests, advanceNgoRequest, NGO_REQUEST_STAGES } = useApp();
+  const [toast, setToast] = useState(null);
+
+  const total = ngoRequests.length;
+  const pending = ngoRequests.filter((r) => r.status === "Submitted" || r.status === "Under Review").length;
+  const approved = ngoRequests.filter((r) => r.status === "Approved" || r.status === "Collected").length;
+  const completed = ngoRequests.filter((r) => r.status === "Completed").length;
+
+  const recent = ngoRequests.slice(0, 5);
+
+  const advance = (r) => {
+    const idx = NGO_REQUEST_STAGES.indexOf(r.status);
+    const next = NGO_REQUEST_STAGES[idx + 1];
+    if (!next) return;
+    advanceNgoRequest(r.id, next);
+    setToast({ message: `${r.id} moved to ${next}`, type: "success" });
+  };
 
   return (
     <div>
+      {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
       <h1 className="text-2xl font-bold text-gray-800">NGO Dashboard</h1>
-      <p className="text-gray-500 mt-1 mb-8">Manage food requests and collections.</p>
+      <p className="text-gray-500 mt-1 mb-8">Move requests from Submitted through Completed.</p>
 
       <div className="grid sm:grid-cols-2 xl:grid-cols-4 gap-5">
-        <DashboardCard title="Available Food"  value="18"  icon={faUtensils}      />
-        <DashboardCard title="Pending Requests" value="4"  icon={faClock}         color="orange" />
-        <DashboardCard title="Fulfilled"       value="12" icon={faCheckCircle}   color="blue"   />
-        <DashboardCard title="Total Requests"  value="30" icon={faClipboardList} color="purple" />
+        <DashboardCard title="Total Requests"  value={total}     icon={faClipboardList} />
+        <DashboardCard title="Pending"         value={pending}   icon={faClock}         color="orange" />
+        <DashboardCard title="Approved"        value={approved}  icon={faUtensils}      color="blue"   />
+        <DashboardCard title="Completed"       value={completed} icon={faCheckCircle}   color="purple" />
       </div>
 
       <div className="bg-white rounded-xl shadow-sm mt-8 overflow-hidden">
@@ -34,29 +52,31 @@ const NgoDashboard = () => {
           <Link to="/ngo/my-requests" className="text-green-600 text-sm font-semibold">View All</Link>
         </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm">
-            <thead className="bg-gray-50 text-gray-500">
-              <tr>
-                <th className="p-4">Food Item</th>
-                <th className="p-4">Source</th>
-                <th className="p-4">Quantity</th>
-                <th className="p-4">Date</th>
-                <th className="p-4">Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {requests.map((r) => (
-                <tr key={r.id} className="border-t hover:bg-gray-50">
-                  <td className="p-4 font-medium text-gray-800">{r.food}</td>
-                  <td className="p-4">{r.source}</td>
-                  <td className="p-4">{r.qty}</td>
-                  <td className="p-4 text-gray-500">{r.date}</td>
-                  <td className="p-4"><StatusBadge status={r.status} /></td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        <div className="divide-y divide-gray-50">
+          {recent.map((r) => (
+            <div key={r.id} className="p-5 hover:bg-gray-50 transition">
+              <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
+                <div>
+                  <p className="font-semibold text-gray-800">{r.foodName}</p>
+                  <p className="text-xs text-gray-400">{r.qty} · From: {r.source} · {r.requestedAt}</p>
+                </div>
+                <StatusBadge status={r.status} />
+              </div>
+              <GenericProgressTracker stages={NGO_REQUEST_STAGES} current={r.status} compact />
+              {NGO_REQUEST_STAGES[NGO_REQUEST_STAGES.indexOf(r.status) + 1] && (
+                <button
+                  onClick={() => advance(r)}
+                  className="mt-3 inline-flex items-center gap-2 bg-green-600 text-white text-sm font-semibold px-4 py-2 rounded-lg hover:bg-green-700"
+                >
+                  Mark as {NGO_REQUEST_STAGES[NGO_REQUEST_STAGES.indexOf(r.status) + 1]}
+                  <FontAwesomeIcon icon={faArrowRight} />
+                </button>
+              )}
+            </div>
+          ))}
+          {recent.length === 0 && (
+            <p className="text-center text-gray-400 py-8">No requests yet. <Link to="/ngo/available-food" className="text-green-600 font-semibold">Browse available food →</Link></p>
+          )}
         </div>
       </div>
     </div>

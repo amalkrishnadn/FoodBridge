@@ -1,27 +1,45 @@
-import React from "react";
+import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import DashboardCard from "../../components/DashboardCard";
 import StatusBadge from "../../components/StatusBadge";
+import GenericProgressTracker from "../../components/GenericProgressTracker";
+import Toast from "../../components/Toast";
+import { useApp } from "../../context/AppContext";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faBox,
   faClock,
   faCheckCircle,
   faUsers,
+  faArrowRight,
 } from "@fortawesome/free-solid-svg-icons";
 
 const DonorDashboard = () => {
-  const donations = [
-    { id: 1, food: "Vegetable Rice", quantity: "25 meals",  date: "24 Nov 2026", status: "Available" },
-    { id: 2, food: "Fresh Bread",    quantity: "40 pieces", date: "23 Nov 2026", status: "Completed" },
-    { id: 3, food: "Fruit Packs",    quantity: "15 packs",  date: "22 Nov 2026", status: "Pending"   },
-  ];
+  const { donations, advanceDonation, DONATION_STAGES } = useApp();
+  const [toast, setToast] = useState(null);
+
+  const total = donations.length;
+  const pending = donations.filter((d) => d.status === "Pending" || d.status === "Available").length;
+  const completed = donations.filter((d) => d.status === "Completed").length;
+  const requested = donations.filter((d) => d.status === "Requested" || d.status === "Approved").length;
+
+  const recent = donations.slice(0, 5);
+
+  const advance = (d) => {
+    const idx = DONATION_STAGES.indexOf(d.status);
+    const next = DONATION_STAGES[idx + 1];
+    if (!next) return;
+    advanceDonation(d.id, next);
+    setToast({ message: `${d.id} moved to ${next}`, type: "success" });
+  };
 
   return (
     <div>
+      {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
       <div className="flex flex-wrap justify-between items-center gap-4 mb-8">
         <div>
           <h1 className="text-2xl font-bold text-gray-800">Donor Dashboard</h1>
-          <p className="text-gray-500 mt-1">Manage your food donations.</p>
+          <p className="text-gray-500 mt-1">Update each donation from Available through Completed.</p>
         </div>
         <Link to="/donor/add-donation" className="bg-green-600 text-white px-5 py-3 rounded-lg hover:bg-green-700">
           + Add Donation
@@ -29,10 +47,10 @@ const DonorDashboard = () => {
       </div>
 
       <div className="grid sm:grid-cols-2 xl:grid-cols-4 gap-5">
-        <DashboardCard title="Total Donations"   value="24" icon={faBox}         />
-        <DashboardCard title="Pending Donations" value="5"  icon={faClock}       color="orange" />
-        <DashboardCard title="Completed"         value="16" icon={faCheckCircle} color="blue"   />
-        <DashboardCard title="Partner Requests"  value="8"  icon={faUsers}       color="purple" />
+        <DashboardCard title="Total Donations"   value={total}     icon={faBox}         />
+        <DashboardCard title="Active / Pending"  value={pending}   icon={faClock}       color="orange" />
+        <DashboardCard title="Completed"         value={completed} icon={faCheckCircle} color="blue"   />
+        <DashboardCard title="Partner Requests"  value={requested} icon={faUsers}       color="purple" />
       </div>
 
       <div className="bg-white rounded-xl shadow-sm mt-8 overflow-hidden">
@@ -41,27 +59,31 @@ const DonorDashboard = () => {
           <Link to="/donor/my-donations" className="text-green-600 text-sm font-semibold">View All</Link>
         </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm">
-            <thead className="bg-gray-50 text-gray-500">
-              <tr>
-                <th className="p-4">Food Item</th>
-                <th className="p-4">Quantity</th>
-                <th className="p-4">Date</th>
-                <th className="p-4">Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {donations.map((d) => (
-                <tr key={d.id} className="border-t hover:bg-gray-50">
-                  <td className="p-4 font-medium text-gray-800">{d.food}</td>
-                  <td className="p-4">{d.quantity}</td>
-                  <td className="p-4 text-gray-500">{d.date}</td>
-                  <td className="p-4"><StatusBadge status={d.status} /></td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        <div className="divide-y divide-gray-50">
+          {recent.map((d) => (
+            <div key={d.id} className="p-5 hover:bg-gray-50 transition">
+              <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
+                <div>
+                  <p className="font-semibold text-gray-800">{d.foodName}</p>
+                  <p className="text-xs text-gray-400">{d.quantity} {d.unit} · {d.createdAt}</p>
+                </div>
+                <StatusBadge status={d.status} />
+              </div>
+              <GenericProgressTracker stages={DONATION_STAGES} current={d.status} compact />
+              {DONATION_STAGES[DONATION_STAGES.indexOf(d.status) + 1] && (
+                <button
+                  onClick={() => advance(d)}
+                  className="mt-3 inline-flex items-center gap-2 bg-green-600 text-white text-sm font-semibold px-4 py-2 rounded-lg hover:bg-green-700"
+                >
+                  Mark as {DONATION_STAGES[DONATION_STAGES.indexOf(d.status) + 1]}
+                  <FontAwesomeIcon icon={faArrowRight} />
+                </button>
+              )}
+            </div>
+          ))}
+          {recent.length === 0 && (
+            <p className="text-center text-gray-400 py-8">No donations yet. <Link to="/donor/add-donation" className="text-green-600 font-semibold">Add one now →</Link></p>
+          )}
         </div>
       </div>
     </div>

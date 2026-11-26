@@ -13,37 +13,50 @@ import {
   faUsers,
   faBuilding,
   faRecycle,
+  faChartBar,
+  faDrumstickBite,
+  faListCheck,
 } from "@fortawesome/free-solid-svg-icons";
 
 const menus = {
   donor: [
-    { name: "Dashboard",    path: "",             icon: faGauge },
+    { name: "Dashboard", path: "", icon: faGauge },
     { name: "Add Donation", path: "add-donation", icon: faPlus },
     { name: "My Donations", path: "my-donations", icon: faBox },
-    { name: "Requests",     path: "requests",     icon: faClipboardList },
+    { name: "Requests", path: "requests", icon: faClipboardList },
   ],
   ngo: [
-    { name: "Dashboard",      path: "",             icon: faGauge },
+    { name: "Dashboard",      path: "",              icon: faGauge },
     { name: "Available Food", path: "available-food", icon: faUtensils },
-    { name: "My Requests",    path: "my-requests",  icon: faClipboardList },
+    { name: "My Requests",    path: "my-requests",   icon: faClipboardList },
   ],
   volunteer: [
-    { name: "Dashboard", path: "",        icon: faGauge },
-    { name: "My Tasks",  path: "my-tasks", icon: faTruck },
+    { name: "Dashboard", path: "", icon: faGauge },
+    { name: "My Tasks", path: "my-tasks", icon: faTruck },
   ],
   events: [
-    { name: "Dashboard",   path: "",           icon: faGauge },
+    { name: "Dashboard", path: "", icon: faGauge },
     { name: "Report Food", path: "report-food", icon: faFileAlt },
+    { name: "My Reports",  path: "my-reports",  icon: faListCheck },
   ],
   recovery: [
-    { name: "Dashboard",      path: "",              icon: faGauge },
-    { name: "Available Food", path: "available-food", icon: faRecycle },
+    { name: "Dashboard",       path: "",              icon: faGauge },
+    { name: "Available Food",  path: "available-food", icon: faRecycle },
+    { name: "My Materials",    path: "my-materials",   icon: faBox },
+    { name: "Add Material",    path: "add-material",   icon: faPlus },
+  ],
+  animalFeed: [
+    { name: "Dashboard", path: "", icon: faGauge },
+    { name: "Available Food", path: "available-food", icon: faDrumstickBite },
+    { name: "My Requests",    path: "my-requests",   icon: faClipboardList },
   ],
   admin: [
-    { name: "Dashboard",     path: "",             icon: faGauge },
-    { name: "Users",         path: "users",        icon: faUsers },
-    { name: "Donations",     path: "donations",    icon: faBox },
+    { name: "Dashboard", path: "", icon: faGauge },
+    { name: "Users", path: "users", icon: faUsers },
+    { name: "Donations", path: "donations", icon: faBox },
     { name: "Organizations", path: "organizations", icon: faBuilding },
+    { name: "Statistics",    path: "stats",        icon: faChartBar },
+    { name: "Recovery",      path: "recovery",     icon: faRecycle },
   ],
 };
 
